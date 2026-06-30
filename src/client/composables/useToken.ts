@@ -11,17 +11,26 @@ export function useToken(options: RAGSearchPluginOptions) {
     if (options.token.type === 'literal') {
       return options.token.value || null
     }
-    const stored = localStorage.getItem(storageKey)
-    if (!stored) {
+    try {
+      const stored = localStorage.getItem(storageKey)
+      if (!stored) {
+        needsSetup.value = true
+        return null
+      }
+      return stored
+    } catch {
       needsSetup.value = true
       return null
     }
-    return stored
   }
 
   function saveToken(token: string) {
-    localStorage.setItem(storageKey, token)
-    needsSetup.value = false
+    try {
+      localStorage.setItem(storageKey, token)
+      needsSetup.value = false
+    } catch {
+      // ponytail: storage unavailable, user will be prompted again
+    }
   }
 
   return { getToken, saveToken, needsSetup }
