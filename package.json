@@ -1,0 +1,31 @@
+{
+  "name": "vuepress-plugin-ragsearch",
+  "version": "0.1.0",
+  "description": "VuePress 2 plugin for RAG-powered documentation search and AI chat",
+  "keywords": ["vuepress", "plugin", "rag", "search", "ai"],
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/node/index.ts",
+    "./client": "./src/client/config.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "vuepress dev demo",
+    "demo:build": "vuepress build demo"
+  },
+  "peerDependencies": {
+    "vue": "^3.4.0",
+    "vuepress": "^2.0.0-rc.0"
+  },
+  "dependencies": {
+    "markdown-it": "^14.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "@types/markdown-it": "^14.1.0",
+    "@vuepress/bundler-vite": "^2.0.0-rc.0",
+    "@vuepress/theme-default": "^2.0.0-rc.0",
+    "vuepress": "^2.0.0-rc.0"
+  }
+}
