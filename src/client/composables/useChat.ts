@@ -33,6 +33,7 @@ export function useChat(options: RAGSearchPluginOptions) {
   }
 
   async function send(text: string) {
+    abortController?.abort()
     pushUser(text)
     await stream(text)
   }
@@ -72,7 +73,13 @@ export function useChat(options: RAGSearchPluginOptions) {
         return
       }
 
-      const reader = response.body!.getReader()
+      if (!response.body) {
+        assistantMsg.status = 'error'
+        assistantMsg.error = '服务器返回异常，请重试'
+        return
+      }
+
+      const reader = response.body.getReader()
       const decoder = new TextDecoder()
       let buffer = ''
 
@@ -97,9 +104,22 @@ export function useChat(options: RAGSearchPluginOptions) {
         }
       }
 
+      // Process residual buffer (last line without trailing newline)
+      if (buffer.startsWith('data: ')) {
+        try {
+          const data: SSEData = JSON.parse(buffer.slice(6))
+          if (data.type === 'text') assistantMsg.content += data.content
+          else if (data.type === 'source') assistantMsg.sources.push(data.content)
+        } catch { /* skip */ }
+      }
+
       assistantMsg.status = 'complete'
     } catch (e: any) {
-      if (e?.name === 'AbortError') return
+      if (e?.name === 'AbortError') {
+        assistantMsg.status = assistantMsg.content ? 'complete' : 'error'
+        assistantMsg.error = assistantMsg.content ? '' : '已停止'
+        return
+      }
       assistantMsg.status = assistantMsg.content ? 'complete' : 'error'
       assistantMsg.error = assistantMsg.content
         ? '连接中断'
