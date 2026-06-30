@@ -1,5 +1,3 @@
-// src/types/index.ts
-
 export interface Source {
   title: string
   url: string
@@ -9,15 +7,15 @@ export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
   content: string
-  sources?: Source[]
+  sources: Source[]
   status: 'streaming' | 'complete' | 'error'
   error?: string
 }
 
-export interface SSEData {
-  type: 'text' | 'source' | 'done'
-  content: string | Source
-}
+export type SSEData =
+  | { type: 'text'; content: string }
+  | { type: 'source'; content: Source }
+  | { type: 'done' }
 
 export interface RAGSearchPluginOptions {
   baseUrl: string

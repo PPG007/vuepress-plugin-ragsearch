@@ -5,6 +5,7 @@
   "keywords": ["vuepress", "plugin", "rag", "search", "ai"],
   "license": "MIT",
   "type": "module",
+  "files": ["src", "lib"],
   "exports": {
     ".": "./src/node/index.ts",
     "./client": "./src/client/config.ts"
