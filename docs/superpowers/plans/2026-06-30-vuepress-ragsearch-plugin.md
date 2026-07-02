@@ -410,7 +410,7 @@ git add -A && git commit -m "feat: useChat composable with SSE streaming"
 ```ts
 // src/client/composables/useDrawer.ts
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter } from 'vuepress/client'
 
 export function useDrawer() {
   const isOpen = ref(false)
@@ -970,8 +970,8 @@ export default defineUserConfig({
 - [ ] **Step 3: 安装依赖并启动 demo**
 
 ```bash
-npm install
-npx vuepress dev demo
+pnpm install
+pnpm exec vuepress dev demo
 ```
 
 打开 http://localhost:8080 ，点击右上角搜索按钮，验证抽屉滑入动画、Token 配置界面、对话功能。

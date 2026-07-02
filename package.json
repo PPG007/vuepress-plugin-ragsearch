@@ -11,6 +11,7 @@
   ],
   "license": "MIT",
   "type": "module",
+  "packageManager": "pnpm@11.7.0",
   "files": [
     "lib"
   ],
@@ -27,7 +28,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json && node scripts/copy-vue-sfc.mjs",
     "dev": "vuepress dev demo",
-    "demo:build": "npm run build && vuepress build demo"
+    "demo:build": "pnpm run build && vuepress build demo"
   },
   "peerDependencies": {
     "vue": "^3.4.0",
