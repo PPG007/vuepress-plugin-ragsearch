@@ -10,8 +10,18 @@
     "ai"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/PPG007/vuepress-plugin-ragsearch.git"
+  },
+  "bugs": {
+    "url": "https://github.com/PPG007/vuepress-plugin-ragsearch/issues"
+  },
+  "homepage": "https://github.com/PPG007/vuepress-plugin-ragsearch#readme",
   "type": "module",
   "packageManager": "pnpm@11.7.0",
+  "main": "./lib/node/index.js",
+  "types": "./lib/node/index.d.ts",
   "files": [
     "lib"
   ],
@@ -23,10 +33,15 @@
     "./client": {
       "types": "./lib/client/config.d.ts",
       "import": "./lib/client/config.js"
+    },
+    "./types": {
+      "types": "./lib/types/index.d.ts",
+      "import": "./lib/types/index.js"
     }
   },
   "scripts": {
     "build": "tsc -p tsconfig.json && node scripts/copy-vue-sfc.mjs",
+    "prepack": "pnpm run build",
     "dev": "vuepress dev demo",
     "demo:build": "pnpm run build && vuepress build demo"
   },
