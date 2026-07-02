@@ -1,13 +1,13 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 
+const isOpen = ref(false)
+
+function open() { isOpen.value = true }
+function close() { isOpen.value = false }
+function toggle() { isOpen.value = !isOpen.value }
+
 export function useDrawer() {
-  const isOpen = ref(false)
-
-  function open() { isOpen.value = true }
-  function close() { isOpen.value = false }
-  function toggle() { isOpen.value = !isOpen.value }
-
   let router: ReturnType<typeof useRouter> | null = null
   try { router = useRouter() } catch { /* no router in SSR */ }
 
@@ -23,6 +23,7 @@ export function useDrawer() {
     unregister?.()
   })
 
+  // ponytail: one global keydown listener, registered once per component mount is harmless
   function onKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape' && isOpen.value) close()
   }

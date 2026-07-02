@@ -10,11 +10,7 @@
     "skipLibCheck": true,
     "outDir": "lib",
     "rootDir": "src",
-    "declaration": true,
-    "paths": {
-      "@vuepress/client": ["./node_modules/vuepress/client"],
-      "vue": ["./node_modules/vue"]
-    }
+    "declaration": true
   },
   "include": ["src"]
 }
