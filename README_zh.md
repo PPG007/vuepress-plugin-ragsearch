@@ -1,4 +1,4 @@
-# vuepress-plugin-ragsearch
+# @ppg007/vuepress-plugin-ragsearch
 
 VuePress 2 的 RAG 文档搜索与 AI 对话插件。插件会在页面中添加一个搜索按钮和右侧聊天抽屉，并从你自己的 RAG 后端流式接收回答。
 
@@ -9,14 +9,14 @@ VuePress 2 的 RAG 文档搜索与 AI 对话插件。插件会在页面中添加
 在 VuePress 2 项目中安装插件：
 
 ```bash
-pnpm add vuepress-plugin-ragsearch
+pnpm add @ppg007/vuepress-plugin-ragsearch
 ```
 
 也可以使用 npm 或 Yarn：
 
 ```bash
-npm install vuepress-plugin-ragsearch
-yarn add vuepress-plugin-ragsearch
+npm install @ppg007/vuepress-plugin-ragsearch
+yarn add @ppg007/vuepress-plugin-ragsearch
 ```
 
 VuePress 和 Vue 是 peer dependencies，请确保你的站点已经安装 VuePress 2 和 Vue 3。
@@ -36,7 +36,7 @@ pnpm run dev
 ```ts
 // .vuepress/config.ts
 import { defineUserConfig } from "vuepress";
-import { ragSearchPlugin } from "vuepress-plugin-ragsearch";
+import { ragSearchPlugin } from "@ppg007/vuepress-plugin-ragsearch";
 
 export default defineUserConfig({
   plugins: [

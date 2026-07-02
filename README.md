@@ -1,4 +1,4 @@
-# vuepress-plugin-ragsearch
+# @ppg007/vuepress-plugin-ragsearch
 
 [简体中文](README_zh.md)
 
@@ -11,14 +11,14 @@ The backend is not bundled. This package only provides the VuePress client UI an
 Install the plugin in a VuePress 2 project:
 
 ```bash
-pnpm add vuepress-plugin-ragsearch
+pnpm add @ppg007/vuepress-plugin-ragsearch
 ```
 
 With npm or Yarn:
 
 ```bash
-npm install vuepress-plugin-ragsearch
-yarn add vuepress-plugin-ragsearch
+npm install @ppg007/vuepress-plugin-ragsearch
+yarn add @ppg007/vuepress-plugin-ragsearch
 ```
 
 VuePress and Vue are peer dependencies, so make sure your site already has VuePress 2 and Vue 3 installed.
@@ -38,7 +38,7 @@ Add the plugin to your VuePress config:
 ```ts
 // .vuepress/config.ts
 import { defineUserConfig } from "vuepress";
-import { ragSearchPlugin } from "vuepress-plugin-ragsearch";
+import { ragSearchPlugin } from "@ppg007/vuepress-plugin-ragsearch";
 
 export default defineUserConfig({
   plugins: [

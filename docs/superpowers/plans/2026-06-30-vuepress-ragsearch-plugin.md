@@ -41,7 +41,7 @@
 
 ```json
 {
-  "name": "vuepress-plugin-ragsearch",
+  "name": "@ppg007/vuepress-plugin-ragsearch",
   "version": "0.1.0",
   "description": "VuePress 2 plugin for RAG-powered documentation search and AI chat",
   "keywords": ["vuepress", "plugin", "rag", "search", "ai"],
