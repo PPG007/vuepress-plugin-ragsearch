@@ -16,6 +16,7 @@ export default defineUserConfig({
         type: 'localStorage',
         storageKey: 'rag_token',
       },
+      locale: 'zh-CN',
     }),
   ],
 })

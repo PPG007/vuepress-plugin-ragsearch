@@ -7,20 +7,14 @@ export function useToken(options: RAGSearchPluginOptions) {
     ? (options.token.storageKey || 'rag_token')
     : 'rag_token'
 
-  function getToken(): string | null {
+  function getToken(): string {
     if (options.token.type === 'literal') {
-      return options.token.value || null
+      return options.token.value || ''
     }
     try {
-      const stored = localStorage.getItem(storageKey)
-      if (!stored) {
-        needsSetup.value = true
-        return null
-      }
-      return stored
+      return localStorage.getItem(storageKey) || ''
     } catch {
-      needsSetup.value = true
-      return null
+      return ''
     }
   }
 
@@ -29,9 +23,24 @@ export function useToken(options: RAGSearchPluginOptions) {
       localStorage.setItem(storageKey, token)
       needsSetup.value = false
     } catch {
-      // ponytail: storage unavailable, user will be prompted again
+      // Storage may be unavailable; the user will be prompted again.
     }
   }
 
-  return { getToken, saveToken, needsSetup }
+  function clearToken() {
+    if (options.token.type === 'literal') {
+      needsSetup.value = false
+      return
+    }
+
+    try {
+      localStorage.removeItem(storageKey)
+    } catch {
+      // Ignore unavailable storage.
+    }
+
+    needsSetup.value = false
+  }
+
+  return { getToken, saveToken, clearToken, needsSetup, storageKey }
 }

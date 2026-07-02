@@ -1,2 +1,12 @@
 node_modules/
 .worktrees/
+.claude/
+
+# Build output
+lib/
+
+# VuePress demo generated files
+demo/.vuepress/.cache/
+demo/.vuepress/.temp/
+demo/.vuepress/dist/
+demo/.vuepress/dev-server*.log
