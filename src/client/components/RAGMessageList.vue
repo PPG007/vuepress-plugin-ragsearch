@@ -157,7 +157,6 @@ onMounted(() => {
 }
 
 .rag-list__scroll-btn {
-  --rag-c-accent: var(--vp-c-accent, var(--vp-c-brand, #3f7ef7));
   position: absolute;
   right: 18px;
   bottom: 14px;
@@ -199,10 +198,10 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   margin-bottom: 16px;
-  border: 1px solid color-mix(in srgb, var(--vp-c-brand) 26%, var(--vp-c-divider));
+  border: 1px solid color-mix(in srgb, var(--rag-c-accent, var(--vp-c-accent, var(--vp-c-brand, #3f7ef7))) 26%, var(--vp-c-divider));
   border-radius: 8px;
-  background: color-mix(in srgb, var(--vp-c-brand) 10%, var(--vp-c-bg));
-  color: var(--vp-c-brand);
+  background: color-mix(in srgb, var(--rag-c-accent, var(--vp-c-accent, var(--vp-c-brand, #3f7ef7))) 10%, var(--vp-c-bg));
+  color: var(--rag-c-accent, var(--vp-c-accent, var(--vp-c-brand, #3f7ef7)));
 }
 
 .rag-list__empty h3 {

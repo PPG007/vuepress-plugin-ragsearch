@@ -48,6 +48,7 @@ export default defineUserConfig({
       },
       topK: 5,
       locale: "zh-CN",
+      themeColor: "#3f7ef7",
     }),
   ],
 });
@@ -65,6 +66,7 @@ interface RAGSearchPluginOptions {
   token: TokenConfig;
   topK?: number;
   locale?: "zh-CN" | "en-US";
+  themeColor?: string;
   searchButtonText?: string;
   messages?: Partial<RAGSearchMessages>;
 }
@@ -82,10 +84,19 @@ type TokenConfig =
 | `token.storageKey` | 否 | `rag_token` | `token.type` 为 `localStorage` 时使用的 `localStorage` key。 |
 | `topK` | 否 | `5` | 请求中发送为 `top_k` 的数量值，具体含义由后端决定。 |
 | `locale` | 否 | `zh-CN` | 内置界面语言。支持 `zh-CN` 和 `en-US`。 |
+| `themeColor` | 否 | VuePress 品牌色 | 浮动气泡、抽屉高亮、消息高亮和主要控件使用的主题色。支持任意合法 CSS 颜色。 |
 | `searchButtonText` | 否 | 对应语言默认值 | 只覆盖搜索按钮文案的快捷配置。 |
 | `messages` | 否 | 对应语言默认值 | UI 文案覆盖项，key 与 `RAGSearchMessages` 一致。 |
 
 聊天历史会保存在浏览器的 `rag_chat_history:${baseUrl || "default"}` 中，最多保留 40 条消息。
+
+也可以在客户端代码中运行时更新主题色：
+
+```ts
+import { setRAGSearchThemeColor } from "@ppg007/vuepress-plugin-ragsearch/client";
+
+setRAGSearchThemeColor("#16a34a");
+```
 
 ## 后端的接口 schema
 

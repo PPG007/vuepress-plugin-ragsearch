@@ -184,7 +184,6 @@ async function copyText(text: string) {
 
 <style scoped>
 .rag-msg {
-  --rag-c-accent: var(--vp-c-accent, var(--vp-c-brand, #3f7ef7));
   --rag-c-accent-text: var(--vp-c-accent-text, var(--vp-c-white, #ffffff));
   display: flex;
   gap: 10px;

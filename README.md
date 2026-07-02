@@ -50,6 +50,7 @@ export default defineUserConfig({
       },
       topK: 5,
       locale: "en-US",
+      themeColor: "#3f7ef7",
     }),
   ],
 });
@@ -67,6 +68,7 @@ interface RAGSearchPluginOptions {
   token: TokenConfig;
   topK?: number;
   locale?: "zh-CN" | "en-US";
+  themeColor?: string;
   searchButtonText?: string;
   messages?: Partial<RAGSearchMessages>;
 }
@@ -84,10 +86,19 @@ type TokenConfig =
 | `token.storageKey` | No | `rag_token` | `localStorage` key used when `token.type` is `localStorage`. |
 | `topK` | No | `5` | Number sent as `top_k` in chat requests. Your backend decides how to use it. |
 | `locale` | No | `zh-CN` | Built-in UI language. Supported values are `zh-CN` and `en-US`. |
+| `themeColor` | No | VuePress brand color | Theme color used by the floating bubble, drawer accents, message highlights, and primary controls. Accepts any valid CSS color. |
 | `searchButtonText` | No | Locale default | Shortcut for overriding only the search button label. |
 | `messages` | No | Locale default | Partial map of UI text overrides. Keys match `RAGSearchMessages`. |
 
 Chat history is saved in the browser under `rag_chat_history:${baseUrl || "default"}` and is capped at 40 messages.
+
+You can also update the theme color at runtime from client-side code:
+
+```ts
+import { setRAGSearchThemeColor } from "@ppg007/vuepress-plugin-ragsearch/client";
+
+setRAGSearchThemeColor("#16a34a");
+```
 
 ## Backend API Schema
 

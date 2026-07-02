@@ -79,8 +79,8 @@ function onSave() {
   justify-content: center;
   margin-bottom: 16px;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--vp-c-brand) 12%, var(--vp-c-bg-soft));
-  color: var(--vp-c-brand);
+  background: color-mix(in srgb, var(--rag-c-accent, var(--vp-c-accent, var(--vp-c-brand, #3f7ef7))) 12%, var(--vp-c-bg-soft));
+  color: var(--rag-c-accent, var(--vp-c-accent, var(--vp-c-brand, #3f7ef7)));
 }
 
 .rag-token-setup h3 {
@@ -116,8 +116,8 @@ function onSave() {
 }
 
 .rag-token-setup__input:focus {
-  border-color: var(--vp-c-brand);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--vp-c-brand) 16%, transparent);
+  border-color: var(--rag-c-accent, var(--vp-c-accent, var(--vp-c-brand, #3f7ef7)));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--rag-c-accent, var(--vp-c-accent, var(--vp-c-brand, #3f7ef7))) 16%, transparent);
 }
 
 .rag-token-setup__actions {
@@ -129,10 +129,10 @@ function onSave() {
 .rag-token-setup__btn {
   min-width: 76px;
   padding: 9px 14px;
-  border: 1px solid var(--vp-c-brand);
+  border: 1px solid var(--rag-c-accent, var(--vp-c-accent, var(--vp-c-brand, #3f7ef7)));
   border-radius: 8px;
-  background: var(--vp-c-brand);
-  color: var(--vp-c-white);
+  background: var(--rag-c-accent, var(--vp-c-accent, var(--vp-c-brand, #3f7ef7)));
+  color: var(--vp-c-accent-text, var(--vp-c-white, #ffffff));
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;

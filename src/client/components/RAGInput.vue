@@ -63,7 +63,6 @@ function onSubmit() {
 
 <style scoped>
 .rag-input {
-  --rag-c-accent: var(--vp-c-accent, var(--vp-c-brand, #3f7ef7));
   --rag-c-accent-text: var(--vp-c-accent-text, var(--vp-c-white, #ffffff));
   display: grid;
   grid-template-columns: minmax(0, 1fr) 42px;

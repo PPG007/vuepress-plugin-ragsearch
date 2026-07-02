@@ -37,6 +37,7 @@ export interface RAGSearchPluginOptions {
   token: TokenConfig;
   topK?: number;
   locale?: RAGSearchLocale;
+  themeColor?: string;
   searchButtonText?: string;
   messages?: Partial<RAGSearchMessages>;
 }
