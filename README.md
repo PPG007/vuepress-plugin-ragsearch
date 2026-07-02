@@ -1,5 +1,7 @@
 # vuepress-plugin-ragsearch
 
+[简体中文](README_zh.md)
+
 VuePress 2 plugin for RAG-powered documentation search and AI chat. The plugin adds a floating search button and a right-side chat drawer, then streams answers from your own RAG backend.
 
 The backend is not bundled. This package only provides the VuePress client UI and the HTTP/SSE contract used to talk to your RAG service.
