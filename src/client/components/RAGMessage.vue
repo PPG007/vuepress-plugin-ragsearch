@@ -184,7 +184,14 @@ async function copyText(text: string) {
 
 <style scoped>
 .rag-msg {
-  --rag-c-accent-text: var(--vp-c-accent-text, var(--vp-c-white, #ffffff));
+  --rag-c-accent-color: var(--rag-c-accent, var(--vp-c-accent, var(--vp-c-brand, #3f7ef7)));
+  --rag-c-bg-color: var(--vp-c-bg, Canvas);
+  --rag-c-bg-soft-color: var(--vp-c-bg-soft, color-mix(in srgb, CanvasText 6%, Canvas));
+  --rag-c-divider-color: var(--vp-c-divider, color-mix(in srgb, CanvasText 18%, Canvas));
+  --rag-c-text-color: var(--vp-c-text-1, CanvasText);
+  --rag-c-muted-color: var(--vp-c-text-2, color-mix(in srgb, CanvasText 70%, Canvas));
+  --rag-c-danger-color: var(--vp-c-danger, #d5393e);
+  --rag-c-on-accent-color: var(--vp-c-white, #ffffff);
   display: flex;
   gap: 10px;
   padding: 10px 18px;
@@ -203,20 +210,20 @@ async function copyText(text: string) {
   justify-content: center;
   margin-top: 2px;
   border-radius: 8px;
-  background: var(--vp-c-bg-soft);
-  color: var(--vp-c-text-2);
+  background: var(--rag-c-bg-soft-color);
+  color: var(--rag-c-muted-color);
   font-size: 12px;
   font-weight: 750;
 }
 
 .rag-msg--assistant .rag-msg__avatar {
-  background: color-mix(in srgb, var(--rag-c-accent) 12%, var(--vp-c-bg-soft));
-  color: var(--rag-c-accent);
+  background: color-mix(in srgb, var(--rag-c-accent-color) 12%, var(--rag-c-bg-soft-color));
+  color: var(--rag-c-accent-color);
 }
 
 .rag-msg--user .rag-msg__avatar {
-  background: color-mix(in srgb, var(--vp-c-text-1) 8%, var(--vp-c-bg-soft));
-  color: var(--vp-c-text-1);
+  background: color-mix(in srgb, var(--rag-c-text-color) 8%, var(--rag-c-bg-soft-color));
+  color: var(--rag-c-text-color);
 }
 
 .rag-msg__body {
@@ -242,15 +249,15 @@ async function copyText(text: string) {
   min-height: 20px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: var(--vp-c-bg-soft);
-  color: var(--vp-c-text-2);
+  background: var(--rag-c-bg-soft-color);
+  color: var(--rag-c-muted-color);
   font-size: 12px;
   line-height: 1.3;
 }
 
 .rag-msg__phase--active {
-  color: var(--rag-c-accent);
-  background: color-mix(in srgb, var(--rag-c-accent) 10%, var(--vp-c-bg-soft));
+  color: var(--rag-c-accent-color);
+  background: color-mix(in srgb, var(--rag-c-accent-color) 10%, var(--rag-c-bg-soft-color));
 }
 
 .rag-msg__phase-dot {
@@ -275,20 +282,20 @@ async function copyText(text: string) {
 }
 
 .rag-msg__content--user {
-  border: 1px solid color-mix(in srgb, var(--rag-c-accent) 76%, transparent);
-  background: var(--rag-c-accent);
-  color: var(--rag-c-accent-text);
+  border: 1px solid color-mix(in srgb, var(--rag-c-accent-color) 32%, var(--rag-c-divider-color));
+  background: color-mix(in srgb, var(--rag-c-accent-color) 12%, var(--rag-c-bg-soft-color));
+  color: var(--rag-c-text-color);
 }
 
 .rag-msg__content--assistant {
-  border: 1px solid var(--vp-c-divider);
-  background: var(--vp-c-bg);
-  color: var(--vp-c-text-1);
+  border: 1px solid var(--rag-c-divider-color);
+  background: var(--rag-c-bg-color);
+  color: var(--rag-c-text-color);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
 }
 
 .rag-msg--error.rag-msg--assistant .rag-msg__content {
-  border-color: color-mix(in srgb, var(--vp-c-danger) 42%, var(--vp-c-divider));
+  border-color: color-mix(in srgb, var(--rag-c-danger-color) 42%, var(--rag-c-divider-color));
 }
 
 .rag-msg__markdown :deep(p) {
@@ -313,7 +320,7 @@ async function copyText(text: string) {
 }
 
 .rag-msg__edit::selection {
-  background: rgba(255, 255, 255, 0.28);
+  background: color-mix(in srgb, var(--rag-c-accent-color) 24%, transparent);
 }
 
 .rag-msg__tools {
@@ -329,7 +336,7 @@ async function copyText(text: string) {
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
-  color: var(--vp-c-text-2);
+  color: var(--rag-c-muted-color);
   cursor: pointer;
   font-size: 12px;
   line-height: 1.5;
@@ -337,9 +344,9 @@ async function copyText(text: string) {
 }
 
 .rag-msg__tool:hover {
-  border-color: color-mix(in srgb, var(--rag-c-accent) 28%, var(--vp-c-divider));
-  background: var(--vp-c-bg-soft);
-  color: var(--rag-c-accent);
+  border-color: color-mix(in srgb, var(--rag-c-accent-color) 28%, var(--rag-c-divider-color));
+  background: var(--rag-c-bg-soft-color);
+  color: var(--rag-c-accent-color);
 }
 
 .rag-msg__tool:disabled {
@@ -348,14 +355,14 @@ async function copyText(text: string) {
 }
 
 .rag-msg__tool--primary {
-  border-color: color-mix(in srgb, var(--rag-c-accent) 76%, transparent);
-  background: var(--rag-c-accent);
-  color: var(--rag-c-accent-text);
+  border-color: color-mix(in srgb, var(--rag-c-accent-color) 76%, transparent);
+  background: var(--rag-c-accent-color);
+  color: var(--rag-c-on-accent-color);
 }
 
 .rag-msg__tool--primary:hover:not(:disabled) {
-  background: var(--rag-c-accent);
-  color: var(--rag-c-accent-text);
+  background: var(--rag-c-accent-color);
+  color: var(--rag-c-on-accent-color);
   filter: brightness(1.04);
 }
 
@@ -367,7 +374,7 @@ async function copyText(text: string) {
 }
 
 .rag-msg__markdown :deep(a) {
-  color: var(--rag-c-accent);
+  color: var(--rag-c-accent-color);
   text-decoration: none;
 }
 
@@ -379,7 +386,7 @@ async function copyText(text: string) {
   overflow-x: auto;
   padding: 10px;
   border-radius: 8px;
-  background: var(--vp-code-block-bg);
+  background: var(--vp-code-block-bg, var(--rag-c-bg-soft-color));
 }
 
 .rag-msg__markdown :deep(code) {
@@ -397,7 +404,7 @@ async function copyText(text: string) {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--rag-c-accent);
+  background: var(--rag-c-accent-color);
   animation: rag-thinking 1.1s ease-in-out infinite;
 }
 
@@ -415,7 +422,7 @@ async function copyText(text: string) {
   height: 1.15em;
   margin-left: 3px;
   vertical-align: -0.18em;
-  border-right: 2px solid var(--rag-c-accent);
+  border-right: 2px solid var(--rag-c-accent-color);
   animation: rag-blink 1s step-end infinite;
 }
 
@@ -425,7 +432,7 @@ async function copyText(text: string) {
   gap: 6px;
   margin-top: 8px;
   font-size: 12px;
-  color: var(--vp-c-text-2);
+  color: var(--rag-c-muted-color);
 }
 
 .rag-msg__sources-label {
@@ -436,9 +443,9 @@ async function copyText(text: string) {
 .rag-msg__source-link {
   max-width: 100%;
   padding: 4px 8px;
-  border: 1px solid color-mix(in srgb, var(--rag-c-accent) 24%, var(--vp-c-divider));
+  border: 1px solid color-mix(in srgb, var(--rag-c-accent-color) 24%, var(--rag-c-divider-color));
   border-radius: 999px;
-  color: var(--rag-c-accent);
+  color: var(--rag-c-accent-color);
   text-decoration: none;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -446,7 +453,7 @@ async function copyText(text: string) {
 }
 
 .rag-msg__source-link:hover {
-  background: color-mix(in srgb, var(--rag-c-accent) 8%, transparent);
+  background: color-mix(in srgb, var(--rag-c-accent-color) 8%, transparent);
 }
 
 .rag-msg__error {
@@ -454,24 +461,24 @@ async function copyText(text: string) {
   align-items: center;
   gap: 8px;
   margin-top: 7px;
-  color: var(--vp-c-danger);
+  color: var(--rag-c-danger-color);
   font-size: 12px;
 }
 
 .rag-msg__retry {
   padding: 3px 9px;
-  border: 1px solid var(--vp-c-danger);
+  border: 1px solid var(--rag-c-danger-color);
   border-radius: 8px;
   background: transparent;
-  color: var(--vp-c-danger);
+  color: var(--rag-c-danger-color);
   cursor: pointer;
   font-size: 12px;
   font-family: inherit;
 }
 
 .rag-msg__retry:hover {
-  background: var(--vp-c-danger);
-  color: var(--vp-c-white);
+  background: var(--rag-c-danger-color);
+  color: var(--rag-c-on-accent-color);
 }
 
 @keyframes rag-blink {

@@ -28,6 +28,7 @@ const DRAG_THRESHOLD = 4
 const options = useOptions()
 const { isOpen, open } = useDrawer()
 const { t } = useI18n(options)
+const tooltipId = 'rag-search-bubble-tooltip'
 
 const position = ref<BubblePosition | null>(null)
 const isDragging = ref(false)
@@ -157,18 +158,35 @@ onBeforeUnmount(() => {
     }"
     :style="bubbleStyle"
     type="button"
-    :title="t('searchButtonTitle')"
+    :title="t('searchButtonTooltip')"
     :aria-label="t('searchButtonTitle')"
+    :aria-describedby="tooltipId"
     @click="onClick"
     @pointerdown="onPointerDown"
     @pointermove="onPointerMove"
     @pointerup="finishPointer"
     @pointercancel="finishPointer"
   >
-    <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.35-4.35" />
+    <svg
+      class="rag-search-bubble__icon"
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M0 0h24v24H0z" fill="none" />
+      <path
+        fill="none"
+        stroke="currentColor"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M15 19c1.2-3.678 2.526-5.005 6-6c-3.474-.995-4.8-2.322-6-6c-1.2 3.678-2.526 5.005-6 6c3.474.995 4.8 2.322 6 6Zm-8-9c.6-1.84 1.263-2.503 3-3c-1.737-.497-2.4-1.16-3-3c-.6 1.84-1.263 2.503-3 3c1.737.497 2.4 1.16 3 3Zm1.5 10c.3-.92.631-1.251 1.5-1.5c-.869-.249-1.2-.58-1.5-1.5c-.3.92-.631 1.251-1.5 1.5c.869.249 1.2.58 1.5 1.5Z"
+      />
     </svg>
+    <span :id="tooltipId" class="rag-search-bubble__tooltip" role="tooltip">
+      {{ t('searchButtonTooltip') }}
+    </span>
     <span class="rag-search-bubble__sr">{{ t('searchButtonText') }}</span>
   </button>
   <RAGDrawer />
@@ -176,6 +194,11 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .rag-search-bubble {
+  --rag-c-accent-color: var(--rag-c-accent, var(--vp-c-accent, var(--vp-c-brand, #3f7ef7)));
+  --rag-c-on-accent-color: var(--vp-c-white, #ffffff);
+  --rag-c-tooltip-bg-color: var(--vp-c-bg-elv, var(--vp-c-bg, Canvas));
+  --rag-c-tooltip-border-color: var(--vp-c-divider, color-mix(in srgb, CanvasText 18%, Canvas));
+  --rag-c-tooltip-text-color: var(--vp-c-text-1, CanvasText);
   position: fixed;
   right: 20px;
   bottom: 20px;
@@ -186,16 +209,59 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--rag-c-accent, var(--vp-c-accent, var(--vp-c-brand, #3f7ef7))) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rag-c-accent-color) 72%, transparent);
   border-radius: 50%;
-  background: var(--rag-c-accent, var(--vp-c-accent, var(--vp-c-brand, #3f7ef7)));
-  color: var(--vp-c-accent-text, var(--vp-c-white, #ffffff));
+  background: var(--rag-c-accent-color);
+  color: var(--rag-c-on-accent-color);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   font-family: inherit;
   touch-action: none;
   user-select: none;
   transition: box-shadow 0.2s ease, filter 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+}
+
+.rag-search-bubble__icon {
+  flex-shrink: 0;
+}
+
+.rag-search-bubble__tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  padding: 5px 9px;
+  border: 1px solid var(--rag-c-tooltip-border-color);
+  border-radius: 6px;
+  background: var(--rag-c-tooltip-bg-color);
+  color: var(--rag-c-tooltip-text-color);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.16);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  white-space: nowrap;
+}
+
+.rag-search-bubble__tooltip::after {
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 8px;
+  height: 8px;
+  border-right: 1px solid var(--rag-c-tooltip-border-color);
+  border-bottom: 1px solid var(--rag-c-tooltip-border-color);
+  background: var(--rag-c-tooltip-bg-color);
+  content: '';
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.rag-search-bubble:hover .rag-search-bubble__tooltip,
+.rag-search-bubble:focus-visible .rag-search-bubble__tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .rag-search-bubble:hover {

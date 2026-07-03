@@ -8,6 +8,7 @@ export const defaultMessages: Record<RAGSearchLocale, RAGSearchMessages> = {
   "zh-CN": {
     searchButtonText: "RAG 搜索",
     searchButtonTitle: "打开 RAG 搜索",
+    searchButtonTooltip: "AI搜索",
     drawerAriaLabel: "RAG 搜索面板",
     drawerEyebrow: "文档助手",
     drawerTitle: "RAG 搜索",
@@ -64,6 +65,7 @@ export const defaultMessages: Record<RAGSearchLocale, RAGSearchMessages> = {
   "en-US": {
     searchButtonText: "RAG Search",
     searchButtonTitle: "Open RAG search",
+    searchButtonTooltip: "AI Search",
     drawerAriaLabel: "RAG search panel",
     drawerEyebrow: "Docs assistant",
     drawerTitle: "RAG Search",

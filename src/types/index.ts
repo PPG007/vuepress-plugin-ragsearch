@@ -51,6 +51,7 @@ export type RAGSearchLocale = "zh-CN" | "en-US";
 export interface RAGSearchMessages {
   searchButtonText: string;
   searchButtonTitle: string;
+  searchButtonTooltip: string;
   drawerAriaLabel: string;
   drawerEyebrow: string;
   drawerTitle: string;

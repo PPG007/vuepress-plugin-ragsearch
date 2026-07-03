@@ -63,13 +63,18 @@ function onSubmit() {
 
 <style scoped>
 .rag-input {
-  --rag-c-accent-text: var(--vp-c-accent-text, var(--vp-c-white, #ffffff));
+  --rag-c-accent-color: var(--rag-c-accent, var(--vp-c-accent, var(--vp-c-brand, #3f7ef7)));
+  --rag-c-bg-color: var(--vp-c-bg, Canvas);
+  --rag-c-divider-color: var(--vp-c-divider, color-mix(in srgb, CanvasText 18%, Canvas));
+  --rag-c-text-color: var(--vp-c-text-1, CanvasText);
+  --rag-c-danger-color: var(--vp-c-danger, #d5393e);
+  --rag-c-on-accent-color: var(--vp-c-white, #ffffff);
   display: grid;
   grid-template-columns: minmax(0, 1fr) 42px;
   gap: 9px;
   padding: 13px 16px 16px;
-  border-top: 1px solid var(--vp-c-divider);
-  background: var(--vp-c-bg);
+  border-top: 1px solid var(--rag-c-divider-color);
+  background: var(--rag-c-bg-color);
 }
 
 .rag-input__textarea {
@@ -78,20 +83,20 @@ function onSubmit() {
   max-height: 128px;
   box-sizing: border-box;
   padding: 10px 12px;
-  border: 1px solid var(--vp-c-divider);
+  border: 1px solid var(--rag-c-divider-color);
   border-radius: 8px;
   font-size: 14px;
   line-height: 1.45;
   resize: vertical;
   outline: none;
-  background: var(--vp-c-bg);
-  color: var(--vp-c-text-1);
+  background: var(--rag-c-bg-color);
+  color: var(--rag-c-text-color);
   font-family: inherit;
 }
 
 .rag-input__textarea:focus {
-  border-color: var(--rag-c-accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--rag-c-accent) 14%, transparent);
+  border-color: var(--rag-c-accent-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--rag-c-accent-color) 14%, transparent);
 }
 
 .rag-input__textarea:disabled {
@@ -105,10 +110,10 @@ function onSubmit() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid color-mix(in srgb, var(--rag-c-accent) 76%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rag-c-accent-color) 76%, transparent);
   border-radius: 8px;
-  background: var(--rag-c-accent);
-  color: var(--rag-c-accent-text);
+  background: var(--rag-c-accent-color);
+  color: var(--rag-c-on-accent-color);
   cursor: pointer;
   transition: transform 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
 }
@@ -124,9 +129,9 @@ function onSubmit() {
 }
 
 .rag-input__btn--stop {
-  border-color: var(--vp-c-danger, #d5393e);
-  background: var(--vp-c-danger, #d5393e);
-  color: var(--vp-c-white, #ffffff);
+  border-color: var(--rag-c-danger-color);
+  background: var(--rag-c-danger-color);
+  color: var(--rag-c-on-accent-color);
 }
 
 @media (max-width: 480px) {
