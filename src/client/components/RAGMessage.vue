@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import MarkdownIt from 'markdown-it'
-import type { ChatMessage } from '../../types'
+import {
+  createHighlighter,
+  createJavaScriptRegexEngine,
+  type BundledLanguage,
+  type Highlighter,
+} from 'shiki'
+import type { ChatMessage, Source } from '../../types'
 import { useOptions } from '../options'
 import { useI18n } from '../composables/useI18n'
 
@@ -15,18 +21,61 @@ const emit = defineEmits<{
   regenerate: [{ id: string; text: string }]
 }>()
 
-const md = new MarkdownIt({ breaks: true, linkify: true })
+const SHIKI_THEMES = { light: 'github-light', dark: 'one-dark-pro' } as const
+const SHIKI_LANGUAGES = [
+  'bash',
+  'c',
+  'cpp',
+  'css',
+  'diff',
+  'dockerfile',
+  'go',
+  'html',
+  'java',
+  'javascript',
+  'json',
+  'markdown',
+  'php',
+  'python',
+  'rust',
+  'shell',
+  'sql',
+  'text',
+  'tsx',
+  'typescript',
+  'vue',
+  'xml',
+  'yaml',
+] satisfies BundledLanguage[]
+
 const options = useOptions()
 const { t } = useI18n(options)
+const md = createMarkdownRenderer()
 const isEditing = ref(false)
 const editText = ref(props.message.content)
 const copied = ref(false)
+const rendered = ref('')
 let copiedTimer: ReturnType<typeof setTimeout> | null = null
+let renderId = 0
+let highlighterPromise: Promise<Highlighter> | null = null
 
-const rendered = computed(() => {
-  if (!props.message.content) return ''
-  return md.render(props.message.content)
-})
+watch(
+  () => props.message.content,
+  async (content) => {
+    const currentRenderId = ++renderId
+
+    if (!content) {
+      rendered.value = ''
+      return
+    }
+
+    const html = await renderMarkdown(content)
+    if (currentRenderId === renderId) {
+      rendered.value = html
+    }
+  },
+  { immediate: true },
+)
 
 const phaseText = computed(() => {
   if (props.message.status === 'error') return t('phaseError')
@@ -42,6 +91,13 @@ const phaseText = computed(() => {
     default:
       return t('phaseQueued')
   }
+})
+
+const displayedSources = computed(() => {
+  const sources = props.message.sources || []
+  return sources.filter((source, index) =>
+    !sources.some((other, otherIndex) => otherIndex !== index && isParentSource(source, other)),
+  )
 })
 
 watch(
@@ -62,6 +118,33 @@ async function copyMessage() {
   }, 1400)
 }
 
+async function handleMarkdownClick(event: MouseEvent) {
+  const target = event.target
+  if (!(target instanceof HTMLElement)) return
+
+  const button = target.closest<HTMLButtonElement>('.rag-code-copy')
+  if (!button) return
+
+  const container = event.currentTarget
+  if (!(container instanceof HTMLElement) || !container.contains(button)) return
+
+  const code = button.closest('.rag-code-block')?.querySelector('pre code')
+  const text = code?.textContent ?? ''
+  if (!text) return
+
+  await copyText(text)
+
+  button.textContent = t('copied')
+  button.classList.add('rag-code-copy--copied')
+  button.disabled = true
+
+  window.setTimeout(() => {
+    button.textContent = t('copy')
+    button.classList.remove('rag-code-copy--copied')
+    button.disabled = false
+  }, 1400)
+}
+
 function startEdit() {
   editText.value = props.message.content
   isEditing.value = true
@@ -78,6 +161,282 @@ function regenerate(text = props.message.content) {
 
   isEditing.value = false
   emit('regenerate', { id: props.message.id, text: trimmed })
+}
+
+function sourceHref(source: Source) {
+  const anchor = cleanSourceText(source.anchor).replace(/^#/, '')
+  if (!anchor || source.url.includes('#')) return source.url
+  return `${source.url}#${anchor}`
+}
+
+function sourceLabel(source: Source) {
+  const title = normalizeSourceDisplayTitle(source)
+  const anchor = normalizeSourceDisplayAnchor(source)
+  if (anchor && sourceTitleIncludesAnchor(title, anchor)) return title
+  return anchor ? `${title} #${anchor}` : title
+}
+
+function isParentSource(parent: Source, child: Source) {
+  return (
+    isParentHierarchy(parent, child) ||
+    isParentAnchorSource(parent, child) ||
+    isParentPathSource(parent, child)
+  )
+}
+
+function isParentHierarchy(parent: Source, child: Source) {
+  const parentHierarchy = normalizeSourceHierarchy(parent)
+  const childHierarchy = normalizeSourceHierarchy(child)
+  if (!parentHierarchy.length || parentHierarchy.length >= childHierarchy.length) return false
+
+  return parentHierarchy.every((part, index) => part === childHierarchy[index])
+}
+
+function isParentAnchorSource(parent: Source, child: Source) {
+  const parentUrl = splitSourceUrl(sourceHref(parent))
+  const childUrl = splitSourceUrl(sourceHref(child))
+
+  return parentUrl.base === childUrl.base && !parentUrl.anchor && !!childUrl.anchor
+}
+
+function isParentPathSource(parent: Source, child: Source) {
+  const parentPath = normalizeSourcePath(parent.path || parent.url)
+  const childPath = normalizeSourcePath(child.path || child.url)
+  if (!parentPath || !childPath || parentPath === childPath) return false
+
+  return childPath.startsWith(parentPath.endsWith('/') ? parentPath : `${parentPath}/`)
+}
+
+function normalizeSourceDisplayTitle(source: Source) {
+  const title = cleanSourceText(source.title)
+  if (title && !isSourceUrlLike(title)) return title
+
+  const hierarchyTitle = source.hierarchy
+    ?.map(cleanSourceText)
+    .find((part) => part && !isSourceUrlLike(part))
+  if (hierarchyTitle) return hierarchyTitle
+
+  return inferSourceTitleFromUrl(source.path || source.url) || title || source.url
+}
+
+function normalizeSourceDisplayAnchor(source: Source) {
+  const hierarchyAnchor = source.hierarchy
+    ?.slice(1)
+    .map(cleanSourceText)
+    .filter(Boolean)
+    .join(' > ')
+
+  return hierarchyAnchor || cleanSourceText(source.anchor).replace(/^#/, '')
+}
+
+function inferSourceTitleFromUrl(value: string) {
+  const path = cleanSourceText(value).split('#')[0].split('?')[0].replace(/\/+$/, '')
+  if (!path) return ''
+
+  const segment = path.split('/').filter(Boolean).pop()
+  if (!segment) return path
+
+  return safeDecodeURIComponent(segment)
+    .replace(/\.[a-z0-9]+$/i, '')
+    .replace(/[-_]+/g, ' ')
+    .trim()
+}
+
+function normalizeSourceHierarchy(source: Source) {
+  return (source.hierarchy || [])
+    .map((part) => cleanSourceText(part).toLowerCase())
+    .filter(Boolean)
+}
+
+function splitSourceUrl(value: string) {
+  const [base, anchor = ''] = cleanSourceText(value).split('#')
+  return {
+    base: normalizeSourcePath(base),
+    anchor: cleanSourceText(anchor).toLowerCase(),
+  }
+}
+
+function normalizeSourcePath(value: string) {
+  const withoutHash = cleanSourceText(value).split('#')[0].split('?')[0]
+  const normalized = withoutHash.replace(/\\/g, '/').replace(/\/+$/, '').toLowerCase()
+  return normalized || withoutHash
+}
+
+function sourceTitleIncludesAnchor(title: string, anchor: string) {
+  const normalizedTitle = title.toLowerCase()
+  const normalizedAnchor = anchor.toLowerCase()
+  return normalizedTitle.endsWith(`#${normalizedAnchor}`) || normalizedTitle.endsWith(` #${normalizedAnchor}`)
+}
+
+function safeDecodeURIComponent(value: string) {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
+function isSourceUrlLike(value: string) {
+  return /^(?:https?:)?\/\//i.test(value) || value.startsWith('/') || value.includes('\\')
+}
+
+function cleanSourceText(value?: string) {
+  return (value || '').trim()
+}
+
+function createMarkdownRenderer() {
+  const renderer = new MarkdownIt({ breaks: true, linkify: true })
+
+  renderer.renderer.rules.fence = (tokens, idx, _options, env) => {
+    const codeBlocks = getCodeBlocks(env)
+    const token = tokens[idx]
+    const language = token.info.trim().split(/\s+/)[0] || 'text'
+    const placeholder = `<!--rag-code-block-${codeBlocks.length}-->`
+
+    codeBlocks.push({ code: token.content, language, placeholder })
+    return placeholder
+  }
+
+  renderer.renderer.rules.code_block = (tokens, idx, _options, env) => {
+    const codeBlocks = getCodeBlocks(env)
+    const placeholder = `<!--rag-code-block-${codeBlocks.length}-->`
+
+    codeBlocks.push({ code: tokens[idx].content, language: 'text', placeholder })
+    return placeholder
+  }
+
+  return renderer
+}
+
+async function renderMarkdown(content: string) {
+  const env: RenderEnv = { codeBlocks: [] }
+  let html = md.render(content, env)
+
+  const renderedBlocks = await Promise.all(
+    env.codeBlocks.map((block) => renderCodeBlock(block.code, block.language)),
+  )
+
+  env.codeBlocks.forEach((block, index) => {
+    html = html.replace(block.placeholder, renderedBlocks[index])
+  })
+
+  return html
+}
+
+function getCodeBlocks(env: unknown) {
+  return (env as RenderEnv).codeBlocks
+}
+
+async function renderCodeBlock(code: string, language = '') {
+  const normalizedLanguage = language || 'text'
+  const languageClass = ` class="language-${escapeHtml(normalizedLanguage)}"`
+  const languageLabel = escapeHtml(formatCodeLanguage(normalizedLanguage))
+  const label = escapeHtml(t('copy'))
+  const codeHtml = await highlightCode(code, normalizedLanguage)
+
+  return [
+    '<div class="rag-code-block">',
+    `<button class="rag-code-copy" type="button" aria-label="${label}">${label}</button>`,
+    `<span class="rag-code-lang">${languageLabel}</span>`,
+    codeHtml.replace('<code>', `<code${languageClass}>`),
+    '</div>',
+  ].join('')
+}
+
+async function highlightCode(code: string, language: string) {
+  const shikiLanguage = normalizeShikiLanguage(language)
+
+  try {
+    const highlighter = await getShikiHighlighter()
+    await ensureShikiLanguage(highlighter, shikiLanguage)
+
+    return highlighter.codeToHtml(code, {
+      lang: shikiLanguage,
+      themes: SHIKI_THEMES,
+    })
+  } catch {
+    return `<pre class="shiki"><code>${escapeHtml(code)}</code></pre>`
+  }
+}
+
+function getShikiHighlighter() {
+  highlighterPromise ??= createHighlighter({
+    themes: Object.values(SHIKI_THEMES),
+    langs: SHIKI_LANGUAGES,
+    engine: createJavaScriptRegexEngine(),
+  })
+
+  return highlighterPromise
+}
+
+async function ensureShikiLanguage(highlighter: Highlighter, language: BundledLanguage) {
+  if (highlighter.getLanguage(language)) return
+  await highlighter.loadLanguage(language)
+}
+
+function normalizeShikiLanguage(language: string) {
+  const aliases: Record<string, BundledLanguage> = {
+    csharp: 'csharp',
+    cs: 'csharp',
+    docker: 'dockerfile',
+    dockerfile: 'dockerfile',
+    go: 'go',
+    golang: 'go',
+    markdown: 'md',
+    plaintext: 'text',
+    rb: 'ruby',
+    ruby: 'ruby',
+    rs: 'rust',
+    shell: 'sh',
+    typescript: 'ts',
+    javascript: 'js',
+    yml: 'yaml',
+  }
+
+  return aliases[language.toLowerCase()] ?? (language as BundledLanguage)
+}
+
+function formatCodeLanguage(language: string) {
+  const labels: Record<string, string> = {
+    bash: 'Bash',
+    css: 'CSS',
+    html: 'HTML',
+    js: 'JavaScript',
+    javascript: 'JavaScript',
+    json: 'JSON',
+    md: 'Markdown',
+    markdown: 'Markdown',
+    plaintext: 'Text',
+    shell: 'Shell',
+    sh: 'Shell',
+    text: 'Text',
+    ts: 'TypeScript',
+    typescript: 'TypeScript',
+    vue: 'Vue',
+    xml: 'XML',
+    yaml: 'YAML',
+    yml: 'YAML',
+  }
+
+  return labels[language.toLowerCase()] ?? language
+}
+
+type CodeBlock = {
+  code: string
+  language: string
+  placeholder: string
+}
+
+type RenderEnv = {
+  codeBlocks: CodeBlock[]
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
 }
 
 async function copyText(text: string) {
@@ -152,7 +511,7 @@ async function copyText(text: string) {
         </div>
       </template>
 
-      <div v-else class="rag-msg__content rag-msg__content--assistant">
+      <div v-else class="rag-msg__content rag-msg__content--assistant" @click="handleMarkdownClick">
         <div v-if="rendered" class="rag-msg__markdown" v-html="rendered" />
         <div v-else-if="message.status === 'streaming'" class="rag-msg__thinking" :aria-label="t('processingLabel')">
           <span />
@@ -162,15 +521,16 @@ async function copyText(text: string) {
         <span v-if="message.status === 'streaming' && message.content" class="rag-msg__cursor" />
       </div>
 
-      <div v-if="message.sources?.length" class="rag-msg__sources">
+      <div v-if="displayedSources.length" class="rag-msg__sources">
         <span class="rag-msg__sources-label">{{ t('sourcesLabel') }}</span>
         <a
-          v-for="(s, i) in message.sources"
+          v-for="(s, i) in displayedSources"
           :key="i"
-          :href="s.url"
+          :href="sourceHref(s)"
           class="rag-msg__source-link"
+          :title="sourceLabel(s)"
         >
-          {{ i + 1 }}. {{ s.title }}
+          {{ i + 1 }}. {{ sourceLabel(s) }}
         </a>
       </div>
 
@@ -192,9 +552,25 @@ async function copyText(text: string) {
   --rag-c-muted-color: var(--vp-c-text-2, color-mix(in srgb, CanvasText 70%, Canvas));
   --rag-c-danger-color: var(--vp-c-danger, #d5393e);
   --rag-c-on-accent-color: var(--vp-c-white, #ffffff);
+  --rag-code-bg-color: var(--vp-code-block-bg, color-mix(in srgb, var(--rag-c-text-color) 5%, var(--rag-c-bg-soft-color)));
+  --rag-code-text-color: var(--vp-code-color, var(--rag-c-text-color));
+  --rag-code-border-color: color-mix(in srgb, var(--rag-c-text-color) 12%, transparent);
+  --rag-code-copy-bg-color: color-mix(in srgb, var(--rag-c-bg-color) 82%, transparent);
+  --rag-code-copy-hover-bg-color: color-mix(in srgb, var(--rag-c-bg-color) 94%, transparent);
   display: flex;
   gap: 10px;
   padding: 10px 18px;
+}
+
+:global(html.dark .rag-msg),
+:global(html[data-theme="dark"] .rag-msg),
+:global(body.dark .rag-msg),
+:global(body[data-theme="dark"] .rag-msg) {
+  --rag-code-bg-color: #282c34;
+  --rag-code-text-color: #abb2bf;
+  --rag-code-border-color: #3e4451;
+  --rag-code-copy-bg-color: rgba(33, 37, 43, 0.82);
+  --rag-code-copy-hover-bg-color: rgba(62, 68, 81, 0.92);
 }
 
 .rag-msg--user {
@@ -229,7 +605,7 @@ async function copyText(text: string) {
 .rag-msg__body {
   display: flex;
   flex-direction: column;
-  max-width: min(84%, 350px);
+  max-width: min(84%, 700px);
   min-width: 0;
 }
 
@@ -369,7 +745,8 @@ async function copyText(text: string) {
 .rag-msg__markdown :deep(p:last-child),
 .rag-msg__markdown :deep(ul:last-child),
 .rag-msg__markdown :deep(ol:last-child),
-.rag-msg__markdown :deep(pre:last-child) {
+.rag-msg__markdown :deep(pre:last-child),
+.rag-msg__markdown :deep(.rag-code-block:last-child) {
   margin-bottom: 0;
 }
 
@@ -382,15 +759,96 @@ async function copyText(text: string) {
   text-decoration: underline;
 }
 
+.rag-msg__markdown :deep(.rag-code-block) {
+  position: relative;
+  margin: 0.72em 0;
+}
+
+.rag-msg__markdown :deep(.rag-code-copy) {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  z-index: 1;
+  padding: 3px 8px;
+  border: 1px solid var(--rag-code-border-color);
+  border-radius: 5px;
+  background: var(--rag-code-copy-bg-color);
+  color: var(--rag-code-text-color);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  backdrop-filter: blur(8px);
+}
+
+.rag-msg__markdown :deep(.rag-code-copy:hover:not(:disabled)) {
+  border-color: color-mix(in srgb, var(--rag-c-accent-color) 38%, var(--rag-code-border-color));
+  background: var(--rag-code-copy-hover-bg-color);
+}
+
+.rag-msg__markdown :deep(.rag-code-copy--copied) {
+  color: var(--rag-c-accent-color);
+}
+
+.rag-msg__markdown :deep(.rag-code-lang) {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  max-width: calc(100% - 92px);
+  overflow: hidden;
+  color: color-mix(in srgb, var(--rag-code-text-color) 70%, transparent);
+  font-family: var(--vp-font-family-mono, ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace);
+  font-size: 11px;
+  line-height: 1.6;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .rag-msg__markdown :deep(pre) {
   overflow-x: auto;
-  padding: 10px;
+  margin: 0;
+  padding: 29px 12px 12px;
+  border: 1px solid var(--rag-code-border-color);
   border-radius: 8px;
-  background: var(--vp-code-block-bg, var(--rag-c-bg-soft-color));
+  background: var(--rag-code-bg-color);
+  color: var(--rag-code-text-color);
 }
 
 .rag-msg__markdown :deep(code) {
+  font-family: var(--vp-font-family-mono, ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace);
   font-size: 0.92em;
+}
+
+.rag-msg__markdown :deep(:not(pre) > code) {
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  background: var(--vp-code-bg, color-mix(in srgb, var(--rag-c-text-color) 8%, transparent));
+  color: var(--vp-code-color, var(--rag-c-accent-color));
+}
+
+.rag-msg__markdown :deep(pre code) {
+  display: block;
+  min-width: max-content;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  line-height: 1.6;
+  tab-size: 2;
+}
+
+:global(html.dark .rag-msg__markdown .shiki),
+:global(html.dark .rag-msg__markdown .shiki span),
+:global(html[data-theme="dark"] .rag-msg__markdown .shiki),
+:global(html[data-theme="dark"] .rag-msg__markdown .shiki span),
+:global(body.dark .rag-msg__markdown .shiki),
+:global(body.dark .rag-msg__markdown .shiki span),
+:global(body[data-theme="dark"] .rag-msg__markdown .shiki),
+:global(body[data-theme="dark"] .rag-msg__markdown .shiki span) {
+  background-color: var(--shiki-dark-bg) !important;
+  color: var(--shiki-dark) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
 }
 
 .rag-msg__thinking {

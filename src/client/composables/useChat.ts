@@ -372,24 +372,64 @@ function getSSEEventName(frame: string): string | null {
 }
 
 function normalizeSource(source: Source | ChatSource): Source {
-  if ("url" in source && source.url) {
-    return {
-      title: source.title,
-      url: source.url,
-      path: source.path,
-      hierarchy: source.hierarchy,
-      anchor: source.anchor,
-    };
-  }
+  const rawSource = source as Partial<Source & ChatSource>;
+  const url = rawSource.url || rawSource.path || "";
 
-  const chatSource = source as ChatSource;
   return {
-    title: chatSource.title,
-    url: chatSource.path,
-    path: chatSource.path,
-    hierarchy: chatSource.hierarchy,
-    anchor: chatSource.anchor,
+    title: normalizeSourceTitle(rawSource),
+    url: appendSourceAnchor(url, rawSource.anchor),
+    path: rawSource.path,
+    hierarchy: rawSource.hierarchy,
+    anchor: rawSource.anchor,
   };
+}
+
+function normalizeSourceTitle(source: Partial<Source & ChatSource>): string {
+  const title = cleanSourceText(source.title);
+  if (title && !isSourceUrlLike(title)) return title;
+
+  const hierarchyTitle = source.hierarchy
+    ?.map(cleanSourceText)
+    .find((part) => part && !isSourceUrlLike(part));
+  if (hierarchyTitle) return hierarchyTitle;
+
+  const inferredTitle = inferSourceTitleFromUrl(source.path || source.url || "");
+  return inferredTitle || title || source.path || source.url || "";
+}
+
+function appendSourceAnchor(url: string, anchor?: string): string {
+  const normalizedAnchor = cleanSourceText(anchor).replace(/^#/, "");
+  if (!normalizedAnchor || url.includes("#")) return url;
+  return `${url}#${normalizedAnchor}`;
+}
+
+function inferSourceTitleFromUrl(value: string): string {
+  const path = cleanSourceText(value).split("#")[0].split("?")[0].replace(/\/+$/, "");
+  if (!path) return "";
+
+  const segment = path.split("/").filter(Boolean).pop();
+  if (!segment) return path;
+
+  return safeDecodeURIComponent(segment)
+    .replace(/\.[a-z0-9]+$/i, "")
+    .replace(/[-_]+/g, " ")
+    .trim();
+}
+
+function safeDecodeURIComponent(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+function isSourceUrlLike(value: string): boolean {
+  return /^(?:https?:)?\/\//i.test(value) || value.startsWith("/") || value.includes("\\");
+}
+
+function cleanSourceText(value?: string): string {
+  return (value || "").trim();
 }
 
 function createHistoryStorageKey(options: RAGSearchPluginOptions): string {

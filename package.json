@@ -1,6 +1,6 @@
 {
   "name": "@ppg007/vuepress-plugin-ragsearch",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "VuePress 2 plugin for RAG-powered documentation search and AI chat",
   "keywords": [
     "vuepress",
@@ -50,7 +50,8 @@
     "vuepress": "^2.0.0-rc.0"
   },
   "dependencies": {
-    "markdown-it": "^14.1.0"
+    "markdown-it": "^14.1.0",
+    "shiki": "^4.3.0"
   },
   "devDependencies": {
     "@types/markdown-it": "^14.1.0",

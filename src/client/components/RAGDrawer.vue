@@ -219,7 +219,7 @@ function confirmClearLocalData() {
   position: fixed;
   top: 0;
   right: 0;
-  width: 460px;
+  width: 920px;
   max-width: 100vw;
   height: 100vh;
   display: flex;
