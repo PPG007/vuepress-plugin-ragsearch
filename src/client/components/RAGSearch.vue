@@ -30,6 +30,7 @@ const { isOpen, open } = useDrawer()
 const { t } = useI18n(options)
 const tooltipId = 'rag-search-bubble-tooltip'
 
+const isMounted = ref(false)
 const position = ref<BubblePosition | null>(null)
 const isDragging = ref(false)
 const suppressNextClick = ref(false)
@@ -141,6 +142,7 @@ onMounted(() => {
   }
 
   ensurePosition()
+  isMounted.value = true
   window.addEventListener('resize', onResize)
 })
 
@@ -150,46 +152,48 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <button
-    class="rag-search-bubble"
-    :class="{
-      'rag-search-bubble--hidden': isOpen,
-      'rag-search-bubble--dragging': isDragging,
-    }"
-    :style="bubbleStyle"
-    type="button"
-    :title="t('searchButtonTooltip')"
-    :aria-label="t('searchButtonTitle')"
-    :aria-describedby="tooltipId"
-    @click="onClick"
-    @pointerdown="onPointerDown"
-    @pointermove="onPointerMove"
-    @pointerup="finishPointer"
-    @pointercancel="finishPointer"
-  >
-    <svg
-      class="rag-search-bubble__icon"
-      width="28"
-      height="28"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      xmlns="http://www.w3.org/2000/svg"
+  <template v-if="isMounted">
+    <button
+      class="rag-search-bubble"
+      :class="{
+        'rag-search-bubble--hidden': isOpen,
+        'rag-search-bubble--dragging': isDragging,
+      }"
+      :style="bubbleStyle"
+      type="button"
+      :title="t('searchButtonTooltip')"
+      :aria-label="t('searchButtonTitle')"
+      :aria-describedby="tooltipId"
+      @click="onClick"
+      @pointerdown="onPointerDown"
+      @pointermove="onPointerMove"
+      @pointerup="finishPointer"
+      @pointercancel="finishPointer"
     >
-      <path d="M0 0h24v24H0z" fill="none" />
-      <path
-        fill="none"
-        stroke="currentColor"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M15 19c1.2-3.678 2.526-5.005 6-6c-3.474-.995-4.8-2.322-6-6c-1.2 3.678-2.526 5.005-6 6c3.474.995 4.8 2.322 6 6Zm-8-9c.6-1.84 1.263-2.503 3-3c-1.737-.497-2.4-1.16-3-3c-.6 1.84-1.263 2.503-3 3c1.737.497 2.4 1.16 3 3Zm1.5 10c.3-.92.631-1.251 1.5-1.5c-.869-.249-1.2-.58-1.5-1.5c-.3.92-.631 1.251-1.5 1.5c.869.249 1.2.58 1.5 1.5Z"
-      />
-    </svg>
-    <span :id="tooltipId" class="rag-search-bubble__tooltip" role="tooltip">
-      {{ t('searchButtonTooltip') }}
-    </span>
-    <span class="rag-search-bubble__sr">{{ t('searchButtonText') }}</span>
-  </button>
-  <RAGDrawer />
+      <svg
+        class="rag-search-bubble__icon"
+        width="28"
+        height="28"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path d="M0 0h24v24H0z" fill="none" />
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M15 19c1.2-3.678 2.526-5.005 6-6c-3.474-.995-4.8-2.322-6-6c-1.2 3.678-2.526 5.005-6 6c3.474.995 4.8 2.322 6 6Zm-8-9c.6-1.84 1.263-2.503 3-3c-1.737-.497-2.4-1.16-3-3c-.6 1.84-1.263 2.503-3 3c1.737.497 2.4 1.16 3 3Zm1.5 10c.3-.92.631-1.251 1.5-1.5c-.869-.249-1.2-.58-1.5-1.5c-.3.92-.631 1.251-1.5 1.5c.869.249 1.2.58 1.5 1.5Z"
+        />
+      </svg>
+      <span :id="tooltipId" class="rag-search-bubble__tooltip" role="tooltip">
+        {{ t('searchButtonTooltip') }}
+      </span>
+      <span class="rag-search-bubble__sr">{{ t('searchButtonText') }}</span>
+    </button>
+    <RAGDrawer />
+  </template>
 </template>
 
 <style scoped>
